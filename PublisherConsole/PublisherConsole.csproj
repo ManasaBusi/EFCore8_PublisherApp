@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PublisherData\PublisherData.csproj" />
     <ProjectReference Include="..\PublisherDomain\PublisherDomain.csproj" />
   </ItemGroup>
 
