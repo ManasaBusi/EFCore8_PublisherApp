@@ -25,11 +25,124 @@ using PubContext _context = new();
 //SkipAndTakeAuthors();
 
 //SortAuthors();
-QueryAggregate();
+//QueryAggregate();
 
+//RetrieveAndUpdateAuthor();
+//RetrieveAndUpdateMultipleAuthors();
+
+//VariousOperations();
+
+//CoordinatedRetrieveAndUpdateAuthor();
+
+//DeleteAnAuthor();
+
+//InsertMultipleAuthors();
+
+//ExecuteDelete();
+
+ExecuteUpdate();
+
+void ExecuteUpdate()
+{
+    var tenYearsAgo = DateOnly.FromDateTime(DateTime.Now).AddYears(-10);
+    //change price of books older than 10 years to $1.50
+    var oldBookPrice = 1.50m;
+    _context.Books.Where(b => b.PublishDate < tenYearsAgo).ExecuteUpdate(s => s.SetProperty(s => s.BasePrice, oldBookPrice));
+
+    // change the last name of all authors to lower case
+    _context.Authors.ExecuteUpdate(s => s.SetProperty(s => s.LastName, s => s.LastName.ToLower()));
+
+    // change the last name of all authors to title case
+    _context.Authors.ExecuteUpdate(s => s.SetProperty(
+        s => s.LastName,
+        s => s.LastName.Substring(0, 1).ToUpper() + s.LastName.Substring(1).ToLower()));
+}
+
+void ExecuteDelete()
+{
+    var deleteId = 18;
+    _context.Authors.Where(a=> a.Id == deleteId).ExecuteDelete();
+}
+
+void InsertMultipleAuthors()
+{
+    //similar to AddRange, we have UpdateRange and RemoveRange
+    _context.Authors.AddRange(
+        new Author { FirstName = "Ruth", LastName = "Ozeki" },
+        new Author { FirstName = "Sofia", LastName = "Segovia" },
+        new Author { FirstName = "Ursula", LastName = "Leguin" },
+        new Author { FirstName = "Hugh", LastName = "Howey" },
+        new Author { FirstName = "Isabelle", LastName = "Allende" });
+    _context.SaveChanges();
+}
+
+void DeleteAnAuthor()
+{
+    var authorToBeDeleted = _context.Authors.Find(12);
+    if (authorToBeDeleted != null)
+    {
+        _context.Authors.Remove(authorToBeDeleted);
+        _context.SaveChanges();
+    }
+}
+
+void CoordinatedRetrieveAndUpdateAuthor()
+{
+    var author = FindThatAuthor(11);
+    if (author.FirstName == "Appleman")
+    {
+        author.FirstName = "Apple";
+        SaveThatAuthor(author);
+    }
+}
+
+void SaveThatAuthor(Author author)
+{
+    using var anotherShortLivedContext = new PubContext();
+    anotherShortLivedContext.Authors.Update(author);
+    anotherShortLivedContext.SaveChanges();
+}
+
+Author FindThatAuthor(int authorID)
+{
+    using var shortLivedContext = new PubContext();
+    return shortLivedContext.Authors.Find(authorID);
+}
+
+void VariousOperations()
+{
+    var author = _context.Authors.Find(2);
+    author.LastName = "Regeti";
+    var newAuthor = new Author { FirstName = "Appleman", LastName = "Dan" };
+    _context.Authors.Add(newAuthor);
+    _context.SaveChanges();
+}
+
+void RetrieveAndUpdateMultipleAuthors()
+{
+    var authorsToUpdate = _context.Authors.Where(a => a.LastName == "Lerman").ToList();
+    foreach (var author in authorsToUpdate)
+    {
+        author.LastName = "Lehrman";
+    }
+    Console.WriteLine($"Before:\r\n{_context.ChangeTracker.DebugView.ShortView}");
+    _context.ChangeTracker.DetectChanges();
+    Console.WriteLine($"After:\r\n{_context.ChangeTracker.DebugView.ShortView}");
+    _context.SaveChanges();
+}
+
+void RetrieveAndUpdateAuthor()
+{
+    var authorToUpdate = _context.Authors.FirstOrDefault(a => a.FirstName == "AAA");
+    if (authorToUpdate != null)
+    {
+        authorToUpdate.FirstName = "Aman";
+        _context.SaveChanges();
+    }
+}
 void QueryAggregate()
 {
-    var author = _context.Authors.FirstOrDefault(a => a.LastName =="mmm");
+    var author = _context.Authors.FirstOrDefault(a => a.LastName == "mmm");
     //var author = _context.Authors.First(a => a.LastName == "mmm");//This will throw an exception
 
     //var authorWithLastName = _context.Authors.LastOrDefault(a => a.LastName.StartsWith("B"));//This will thrown an exception because LastOrDefault shold have an OrderBy clause
@@ -41,7 +154,7 @@ void SortAuthors()
 {
     //var authorsByLastName = _context.Authors.OrderBy(a => a.LastName).OrderBy(a => a.FirstName).ToList();
     var authorsByLastName = _context.Authors.OrderBy(a => a.LastName).ThenBy(a => a.FirstName).ToList();
-    authorsByLastName.ForEach(a=> Console.WriteLine($"{a.FirstName} {a.LastName}"));
+    authorsByLastName.ForEach(a => Console.WriteLine($"{a.FirstName} {a.LastName}"));
 }
 
 void SkipAndTakeAuthors()
@@ -85,10 +198,10 @@ void GetAuthors()
 void AddAuthor()
 {
     var author = new Author { FirstName = "Manasa", LastName = "Deepthi" };
-    var author1 = new Author { FirstName = "John", LastName = "Doe" };
+    //var author1 = new Author { FirstName = "John", LastName = "Doe" };
     using var context = new PubContext();
     context.Authors.Add(author);
-    context.Authors.Add(author1);
+    //context.Authors.Add(author1);
     context.SaveChanges();
 }
 
