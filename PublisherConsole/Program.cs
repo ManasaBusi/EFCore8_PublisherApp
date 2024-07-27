@@ -40,7 +40,17 @@ using PubContext _context = new();
 
 //ExecuteDelete();
 
-ExecuteUpdate();
+//ExecuteUpdate();
+
+InsertNewAuthorWithBook();
+
+void InsertNewAuthorWithBook()
+{
+    var author = new Author { FirstName = "Chris", LastName = "Nolan" };
+    author.Books.Add(new Book { Title = "Inception", PublishDate = new DateOnly(2010, 7, 16) });
+    _context.Authors.Add(author);
+    _context.SaveChanges();
+}
 
 void ExecuteUpdate()
 {
@@ -140,6 +150,7 @@ void RetrieveAndUpdateAuthor()
         _context.SaveChanges();
     }
 }
+
 void QueryAggregate()
 {
     var author = _context.Authors.FirstOrDefault(a => a.LastName == "mmm");
